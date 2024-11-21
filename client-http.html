@@ -11,20 +11,24 @@
     <h1>WebSocket Example</h1>
     <button id="connect-btn">Connect to Server</button>
     <button id="reset-btn" disabled>Reset Counter</button>
+    <button id="close-btn" disabled>Close Connection</button>
     <p id="status">Status: Disconnected</p>
     <p id="counter">Counter: --</p>
 
     <script>
         let websocket;
 
+        // Connect button event listener
         document.getElementById("connect-btn").addEventListener("click", async () => {
-            const serverUrl = "ws://localhost:8765";
+            const serverUrl = "ws://localhost:8765"; // Ensure the server is running here
             websocket = new WebSocket(serverUrl);
 
             websocket.onopen = () => {
                 document.getElementById("status").textContent = "Status: Connected";
+                // Send message to server to establish connection and start counter
                 websocket.send(JSON.stringify({ type: "establish_connection" }));
                 document.getElementById("reset-btn").disabled = false;
+                document.getElementById("close-btn").disabled = false;
             };
 
             websocket.onmessage = (event) => {
@@ -36,6 +40,8 @@
                     console.log("WebSocket connection established.");
                 } else if (data.status === "counter_reset") {
                     console.log("Counter reset on server.");
+                    // Reset counter display
+                    document.getElementById("counter").textContent = "Counter: 0";
                 }
             };
 
@@ -46,13 +52,28 @@
             websocket.onclose = () => {
                 document.getElementById("status").textContent = "Status: Disconnected";
                 document.getElementById("reset-btn").disabled = true;
+                document.getElementById("close-btn").disabled = true;
                 document.getElementById("counter").textContent = "Counter: --";
             };
         });
 
+        // Reset button event listener
         document.getElementById("reset-btn").addEventListener("click", () => {
             if (websocket && websocket.readyState === WebSocket.OPEN) {
+                console.log("Sending reset request to server...");
                 websocket.send(JSON.stringify({ type: "reset_counter" }));
+            } else {
+                console.log("WebSocket is not open. Cannot send reset request.");
+            }
+        });
+
+        // Close connection button event listener
+        document.getElementById("close-btn").addEventListener("click", () => {
+            if (websocket && websocket.readyState === WebSocket.OPEN) {
+                console.log("Closing WebSocket connection...");
+                websocket.close();
+            } else {
+                console.log("WebSocket is not open. Cannot close connection.");
             }
         });
     </script>

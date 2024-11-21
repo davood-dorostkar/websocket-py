@@ -6,7 +6,7 @@ counter = 0  # Global counter variable
 websocket_connection = None  # Store the WebSocket connection
 
 
-async def handle_http(websocket, path):
+async def handle_http(websocket):
     global websocket_connection, counter
 
     # First, handle the HTTP upgrade request
