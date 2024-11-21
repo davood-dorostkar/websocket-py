@@ -43,6 +43,9 @@
                     // Reset counter display
                     document.getElementById("counter").textContent = "Counter: 0";
                 }
+                else {
+                    console.log(data);
+                }
             };
 
             websocket.onerror = (error) => {

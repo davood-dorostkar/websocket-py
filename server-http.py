@@ -47,6 +47,8 @@ async def handle_websocket_requests(websocket):
                 print("Reset request received. Counter reset to 0.")
                 counter = 0
                 await websocket.send(json.dumps({"status": "counter_reset"}))
+            else:
+                print(data)
     except websockets.ConnectionClosed:
         print("WebSocket connection closed")
 
