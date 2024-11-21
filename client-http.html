@@ -20,7 +20,7 @@
 
         // Connect button event listener
         document.getElementById("connect-btn").addEventListener("click", async () => {
-            const serverUrl = "ws://localhost:8765"; // Ensure the server is running here
+            const serverUrl = "ws://192.168.1.132:8765"; // Ensure the server is running here
             websocket = new WebSocket(serverUrl);
 
             websocket.onopen = () => {
