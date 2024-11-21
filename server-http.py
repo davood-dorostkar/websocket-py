@@ -18,7 +18,7 @@ async def handle_http(websocket):
             print("HTTP request received: Establishing WebSocket connection...")
             websocket_connection = websocket
             await websocket.send(json.dumps({"status": "connection_established"}))
-
+            counter = 0
             # Start the counter loop
             await counter_loop()
     except Exception as e:
