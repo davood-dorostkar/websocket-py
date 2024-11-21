@@ -2,7 +2,7 @@ import asyncio
 import websockets
 
 
-async def server_handler(websocket, path):
+async def server_handler(websocket):
     print("Client connected")
     try:
         async for message in websocket:

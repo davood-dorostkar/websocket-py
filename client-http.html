@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Client</title>
+</head>
+
+<body>
+    <h1>WebSocket Example</h1>
+    <button id="connect-btn">Connect to Server</button>
+    <button id="reset-btn" disabled>Reset Counter</button>
+    <p id="status">Status: Disconnected</p>
+    <p id="counter">Counter: --</p>
+
+    <script>
+        let websocket;
+
+        document.getElementById("connect-btn").addEventListener("click", async () => {
+            const serverUrl = "ws://localhost:8765";
+            websocket = new WebSocket(serverUrl);
+
+            websocket.onopen = () => {
+                document.getElementById("status").textContent = "Status: Connected";
+                websocket.send(JSON.stringify({ type: "establish_connection" }));
+                document.getElementById("reset-btn").disabled = false;
+            };
+
+            websocket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+
+                if (data.type === "counter") {
+                    document.getElementById("counter").textContent = `Counter: ${data.value}`;
+                } else if (data.status === "connection_established") {
+                    console.log("WebSocket connection established.");
+                } else if (data.status === "counter_reset") {
+                    console.log("Counter reset on server.");
+                }
+            };
+
+            websocket.onerror = (error) => {
+                console.error("WebSocket error:", error);
+            };
+
+            websocket.onclose = () => {
+                document.getElementById("status").textContent = "Status: Disconnected";
+                document.getElementById("reset-btn").disabled = true;
+                document.getElementById("counter").textContent = "Counter: --";
+            };
+        });
+
+        document.getElementById("reset-btn").addEventListener("click", () => {
+            if (websocket && websocket.readyState === WebSocket.OPEN) {
+                websocket.send(JSON.stringify({ type: "reset_counter" }));
+            }
+        });
+    </script>
+</body>
+
+</html>
