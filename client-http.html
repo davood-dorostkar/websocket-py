@@ -8,43 +8,65 @@
 </head>
 
 <body>
-    <h1>WebSocket Example</h1>
+    <h1>WebSocket Client</h1>
     <button id="connect-btn">Connect to Server</button>
     <button id="reset-btn" disabled>Reset Counter</button>
+    <button id="custom-task-btn" disabled>Perform Custom Task</button>
+    <button id="status-btn" disabled>Get Server Status</button>
     <button id="close-btn" disabled>Close Connection</button>
     <p id="status">Status: Disconnected</p>
     <p id="counter">Counter: --</p>
+    <p id="server-status">Server Status: --</p>
 
     <script>
         let websocket;
 
         // Connect button event listener
-        document.getElementById("connect-btn").addEventListener("click", async () => {
-            const serverUrl = "ws://192.168.1.132:8765"; // Ensure the server is running here
+        document.getElementById("connect-btn").addEventListener("click", () => {
+            const serverUrl = "ws://192.168.1.132:8765"; // Update with the server's address
             websocket = new WebSocket(serverUrl);
 
             websocket.onopen = () => {
                 document.getElementById("status").textContent = "Status: Connected";
-                // Send message to server to establish connection and start counter
+                // Establish connection and start the counter
                 websocket.send(JSON.stringify({ type: "establish_connection" }));
-                document.getElementById("reset-btn").disabled = false;
-                document.getElementById("close-btn").disabled = false;
+                enableButtons();
             };
 
             websocket.onmessage = (event) => {
                 const data = JSON.parse(event.data);
 
+                // Handle counter updates
                 if (data.type === "counter") {
                     document.getElementById("counter").textContent = `Counter: ${data.value}`;
-                } else if (data.status === "connection_established") {
+                }
+
+                // Handle connection established status
+                else if (data.status === "connection_established") {
                     console.log("WebSocket connection established.");
-                } else if (data.status === "counter_reset") {
+                }
+
+                // Handle counter reset response
+                else if (data.status === "counter_reset") {
                     console.log("Counter reset on server.");
-                    // Reset counter display
                     document.getElementById("counter").textContent = "Counter: 0";
                 }
+
+                // Handle custom task completion
+                else if (data.status === "custom_task_completed") {
+                    console.log(`Custom task "${data.task_name}" completed.`);
+                }
+
+                // Handle server status update
+                else if (data.type === "status_update") {
+                    const serverStatus = data.data;
+                    console.log("Server status received:", serverStatus);
+                    document.getElementById("server-status").textContent = `Server Status: Running, Counter: ${serverStatus.counter_value}`;
+                }
+
+                // Handle unknown responses
                 else {
-                    console.log(data);
+                    console.log("Unknown message received:", data);
                 }
             };
 
@@ -54,19 +76,42 @@
 
             websocket.onclose = () => {
                 document.getElementById("status").textContent = "Status: Disconnected";
-                document.getElementById("reset-btn").disabled = true;
-                document.getElementById("close-btn").disabled = true;
+                disableButtons();
                 document.getElementById("counter").textContent = "Counter: --";
+                document.getElementById("server-status").textContent = "Server Status: --";
             };
         });
 
-        // Reset button event listener
+        // Reset counter button event listener
         document.getElementById("reset-btn").addEventListener("click", () => {
             if (websocket && websocket.readyState === WebSocket.OPEN) {
                 console.log("Sending reset request to server...");
                 websocket.send(JSON.stringify({ type: "reset_counter" }));
             } else {
                 console.log("WebSocket is not open. Cannot send reset request.");
+            }
+        });
+
+        // Custom task button event listener
+        document.getElementById("custom-task-btn").addEventListener("click", () => {
+            if (websocket && websocket.readyState === WebSocket.OPEN) {
+                const taskName = prompt("Enter a custom task name:", "example_task");
+                if (taskName) {
+                    console.log(`Sending custom task request to server: ${taskName}`);
+                    websocket.send(JSON.stringify({ type: "custom_task", task_name: taskName }));
+                }
+            } else {
+                console.log("WebSocket is not open. Cannot send custom task request.");
+            }
+        });
+
+        // Get server status button event listener
+        document.getElementById("status-btn").addEventListener("click", () => {
+            if (websocket && websocket.readyState === WebSocket.OPEN) {
+                console.log("Requesting server status...");
+                websocket.send(JSON.stringify({ type: "get_status" }));
+            } else {
+                console.log("WebSocket is not open. Cannot request server status.");
             }
         });
 
@@ -79,6 +124,22 @@
                 console.log("WebSocket is not open. Cannot close connection.");
             }
         });
+
+        // Enable all interaction buttons
+        function enableButtons() {
+            document.getElementById("reset-btn").disabled = false;
+            document.getElementById("custom-task-btn").disabled = false;
+            document.getElementById("status-btn").disabled = false;
+            document.getElementById("close-btn").disabled = false;
+        }
+
+        // Disable all interaction buttons
+        function disableButtons() {
+            document.getElementById("reset-btn").disabled = true;
+            document.getElementById("custom-task-btn").disabled = true;
+            document.getElementById("status-btn").disabled = true;
+            document.getElementById("close-btn").disabled = true;
+        }
     </script>
 </body>
 
